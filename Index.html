@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari Clone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7f7f7;
+        }
+        .address-bar {
+            background-color: #ececec;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+        .address-bar input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            background-color: #fff;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+        iframe {
+            width: 100%;
+            height: calc(100vh - 80px);
+            border: none;
+        }
+        .safari-clone {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+
+<div class="safari-clone">
+    <!-- Address Bar -->
+    <div class="address-bar">
+        <input type="text" id="url-input" placeholder="Type a website URL and press Enter..." />
+    </div>
+
+    <!-- Webview -->
+    <iframe id="webview" src="about:blank"></iframe>
+</div>
+
+<script>
+    const urlInput = document.getElementById("url-input");
+    const webview = document.getElementById("webview");
+
+    urlInput.addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            let url = urlInput.value.trim();
+            if (url) {
+                if (!/^https?:\/\//i.test(url)) {
+                    url = "https://" + url; // Add 'https://' if not provided
+                }
+                webview.src = url; // Change iframe's src to the typed URL
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Clone</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Menu Bar */
+        .menu-bar {
+            background-color: #fff;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-bar button {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: #333;
+            padding: 8px;
+            transition: background-color 0.3s;
+        }
+
+        .menu-bar button:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Settings Menu */
+        .settings-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 20px;
+            background-color: #fff;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .settings-menu a {
+            display: block;
+            padding: 8px;
+            text-decoration: none;
+            color: #555;
+        }
+
+        .settings-menu a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Tabs Styling */
+        .tabs {
+            display: flex;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .tab {
+            padding: 10px;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+
+        .tab.active {
+            background-color: #4285f4;
+            color: #fff;
+        }
+
+        .tab .close-btn {
+            margin-left: 8px;
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Address Bar */
+        .address-bar {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            display: flex;
+            padding: 5px 10px;
+            margin: 10px;
+            border-radius: 24px;
+        }
+
+        .address-bar input {
+            border: none;
+            flex-grow: 1;
+            font-size: 16px;
+            padding: 8px;
+            border-radius: 24px;
+            outline: none;
+        }
+
+        .address-bar button {
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 10px;
+            cursor: pointer;
+            border-radius: 24px;
+        }
+
+        /* Iframe (Webview) */
+        iframe {
+            flex-grow: 1;
+            width: 100%;
+            border: none;
+            height: calc(100vh - 100px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Incognito Mode Styling */
+        .incognito iframe {
+            filter: brightness(0.8) contrast(1.2);
+        }
+
+        /* Dark Mode Styling */
+        body.dark-mode {
+            background-color: #121212;
+            color: #ccc;
+        }
+
+        body.dark-mode .address-bar {
+            background-color: #333;
+            border-color: #555;
+        }
+
+        body.dark-mode .tabs {
+            background-color: #333;
+        }
+
+        body.dark-mode .tab {
+            background-color: #444;
+            color: #ddd;
+            border-color: #555;
+        }
+
+        body.dark-mode .tab.active {
+            background-color: #1a73e8;
+        }
+
+        body.dark-mode iframe {
+            background-color: #222;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Menu Bar -->
+<div class="menu-bar">
+    <button id="settingsBtn">Settings</button>
+</div>
+
+<!-- Settings Menu -->
+<div class="settings-menu" id="settingsMenu">
+    <a href="#" id="toggleDarkMode">Toggle Dark Mode</a>
+    <a href="#" id="toggleIncognito">Toggle Incognito</a>
+</div>
+
+<!-- Tabs Section -->
+<div class="tabs" id="tabs">
+    <!-- Tabs will be dynamically added here -->
+</div>
+
+<!-- Address Bar -->
+<div class="address-bar">
+    <input type="text" id="url-input" placeholder="Enter URL (e.g., https://www.google.com)" />
+    <button id="go-button">Go</button>
+</div>
+
+<!-- Webview (Iframe) -->
+<iframe id="webview" src="about:blank"></iframe>
+
+<script>
+    let currentTab = null;
+    let tabs = [];
+    const webview = document.getElementById('webview');
+    const tabsContainer = document.getElementById('tabs');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const urlInput = document.getElementById('url-input');
+    const goButton = document.getElementById('go-button');
+
+    // Create a new tab
+    function createTab() {
+        const tabIndex = tabs.length;
+        tabs.push({ name: `Tab ${tabIndex + 1}`, url: '', incognito: false });
+
+        const tab = document.createElement('div');
+        tab.classList.add('tab');
+        tab.innerHTML = `${tabs[tabIndex].name} <button class="close-btn" onclick="closeTab(${tabIndex})">X</button>`;
+        tab.addEventListener('click', () => setActiveTab(tabIndex));
+
+        tabsContainer.appendChild(tab);
+
+        setActiveTab(tabIndex);
+    }
+
+    // Set active tab
+    function setActiveTab(index) {
+        currentTab = index;
+
+        tabs.forEach((tab, i) => {
+            const tabElement = tabsContainer.children[i];
+            tabElement.classList.toggle('active', i === currentTab);
+        });
+
+        const currentTabData = tabs[currentTab];
+        urlInput.value = currentTabData.url;
+        webview.src = currentTabData.url;
+    }
+
+    // Close a tab
+    function closeTab(index) {
+        tabs.splice(index, 1);
+        tabsContainer.removeChild(tabsContainer.children[index]);
+
+        if (index === currentTab && tabs.length > 0) {
+            setActiveTab(Math.max(0, currentTab - 1));
+        }
+    }
+
+    // Handle URL input and go button
+    goButton.addEventListener('click', () => {
+        const url = urlInput.value.trim();
+        tabs[currentTab].url = url;
+        webview.src = url;
+    });
+
+    // Handle settings menu toggle
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+        settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Toggle Dark Mode
+    document.getElementById('toggleDarkMode').addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+    });
+
+    // Toggle Incognito Mode
+    document.getElementById('toggleIncognito').addEventListener('click', () => {
+        tabs[currentTab].incognito = !tabs[currentTab].incognito;
+        if (tabs[currentTab].incognito) {
+            document.body.classList.add('incognito');
+            webview.src = "about:blank"; // Clear iframe when entering incognito
+        } else {
+            document.body.classList.remove('incognito');
+        }
+    });
+
+    // Initial Tab Setup
+    createTab(); // Create a default tab
+
+</script>
+
+</body>
+</html>

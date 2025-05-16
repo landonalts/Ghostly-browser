@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Clone with Tabs and Settings</title>
+    <style>
+        /* Basic Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Menu Bar Styling (Chrome-Like) */
+        .menu-bar {
+            background-color: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-bar .menu {
+            display: flex;
+            align-items: center;
+            margin-right: 16px;
+            position: relative;
+        }
+
+        .menu-bar .menu button {
+            background: none;
+            border: none;
+            color: #555;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 12px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+
+        .menu-bar .menu button:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Dropdown Menu */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            top: 100%;
+            left: 0;
+            min-width: 160px;
+            padding: 8px 0;
+            border-radius: 4px;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: 8px 16px;
+            color: #555;
+            text-decoration: none;
+        }
+
+        .dropdown-menu a:hover {
+            background-color: #f1f1f1;
+        }
+
+        .menu-bar .menu:hover .dropdown-menu {
+            display: block;
+        }
+
+        /* Chrome-Like Tab Styling */
+        .tabs {
+            display: flex;
+            padding: 10px 16px;
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .tab {
+            margin-right: 10px;
+            padding: 8px 12px;
+            background-color: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+        }
+
+        .tab.active {
+            background-color: #4285f4;
+            color: #fff;
+        }
+
+        .tab .close-btn {
+            margin-left: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* Address Bar Styling */
+        .address-bar {
+            background-color: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 24px;
+            padding: 8px 16px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .address-bar input {
+            flex: 1;
+            border: none;
+            padding: 8px 12px;
+            font-size: 16px;
+            border-radius: 24px;
+            outline: none;
+            background-color: #fafafa;
+        }
+
+        .address-bar input:focus {
+            background-color: #fff;
+            border: 1px solid #4285f4;
+        }
+
+        .address-bar button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 8px 12px;
+            margin-left: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Webview Styling */
+        iframe {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            border-radius: 0 0 24px 24px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Incognito Mode Styling */
+        .incognito iframe {
+            filter: brightness(0.8) contrast(1.2);
+        }
+
+        .settings-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            min-width: 150px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .settings-menu input {
+            margin-right: 8px;
+        }
+
+        .settings-menu a {
+            display: block;
+            padding: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            color: #555;
+        }
+
+        .settings-menu a:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Menu Bar -->
+<div class="menu-bar">
+    <div class="menu">
+        <button id="settingsBtn">Settings</button>
+    </div>
+</div>
+
+<!-- Settings Menu -->
+<div class="settings-menu" id="settingsMenu">
+    <a href="#" id="toggleDarkMode">Toggle Dark Mode</a>
+    <a href="#" id="toggleIncognito">Toggle Incognito</a>
+</div>
+
+<!-- Tabs Section -->
+<div class="tabs" id="tabs">
+    <!-- Dynamic Tabs will be added here -->
+</div>
+
+<!-- Address Bar -->
+<div class="address-bar">
+    <input type="text" id="url-input" placeholder="Enter URL (e.g., https://www.google.com)" />
+    <button id="go-button">Go</button>
+</div>
+
+<!-- Webview (Iframe) -->
+<iframe id="webview" src="about:blank"></iframe>
+
+<script>
+    let currentTab = 0;
+    let tabs = [];
+    const webview = document.getElementById("webview");
+    const tabsContainer = document.getElementById("tabs");
+    const settingsMenu = document.getElementById("settingsMenu");
+    const urlInput = document.getElementById("url-input");
+    const goButton = document.getElementById("go-button");
+
+    // Create a new tab
+    function createTab(name) {
+        const tabIndex = tabs.length;
+        tabs.push({ name, url: "", incognito: false });
+
+        const tab = document.createElement("div");
+        tab.classList.add("tab");
+        tab.innerHTML = `${name} <button class="close-btn" onclick="closeTab(${tabIndex})">X</button>`;
+        tab.addEventListener("click", () => setActiveTab(tabIndex));
+
+        tabsContainer.appendChild(tab);
+
+        // Set the active tab
+        setActiveTab(tabIndex);
+    }
+
+    // Set the active tab
+    function setActiveTab(index) {
+        currentTab = index;
+
+        tabs.forEach((tab, i) => {
+            const tabElement = tabsContainer.children[i];
+            tabElement.classList.toggle("active", i === currentTab);
+        });
+
+        const currentTabData = tabs[currentTab];
+        urlInput.value = currentTabData.url;
+        webview.src = currentTabData.url;
+    }
+
+    // Close a tab
+    function closeTab(index) {
+        tabs.splice(index, 1);
+        tabsContainer.removeChild(tabsContainer.children[index]);
+
+        if (index === currentTab && tabs.length > 0) {
+            setActiveTab(Math.max(0, currentTab - 1));
+        }
+    }
+
+    // Toggle dark mode
+    document.getElementById("toggleDarkMode").addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+    });
+
+    // Toggle incognito mode
+    document.getElementById("toggleIncognito").addEventListener("click", () => {
+        tabs[currentTab].incognito = !tabs[currentTab].incognito;
+        if (tabs[currentTab].incognito) {
+            document.body.classList.add("incognito");
+        } else {
+            document.body.classList.remove("incognito");
+        }
+    });
+
+    // Settings button
+    document.getElementById("settingsBtn").addEventListener("click", () => {
+        settingsMenu.style.display = settingsMenu.style.display === "block" ? "none" : "block";
+    });
+
+    // Load URL into current tab
+    goButton.addEventListener("click", () => {
+        const url = urlInput.value.trim();
+        tabs[currentTab].url = url;
+        webview.src = url;
+    });
+
+    // Start by creating the first tab
+    createTab("New Tab");
+
+    // You can add more functionality for bookmarks, history, etc. later on.
+</script>
+
+</body>
+</html>

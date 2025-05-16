@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safari Clone</title>
+    <style>
+        /* Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #f0f0f5;
+        }
+
+        /* Main Container */
+        .browser-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-color: #fff;
+        }
+
+        /* Navigation Bar (Safari) */
+        .nav-bar {
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-bar input {
+            width: 80%;
+            padding: 8px;
+            border-radius: 20px;
+            border: 1px solid #ccc;
+            outline: none;
+            font-size: 14px;
+            background-color: #fff;
+        }
+
+        .nav-bar button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            margin-right: 10px;
+        }
+
+        .nav-bar button:hover {
+            color: #4285f4;
+        }
+
+        /* Tab Bar */
+        .tab-bar {
+            display: flex;
+            background-color: #f7f7f8;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            background-color: #fff;
+            margin-right: 8px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            border: 1px solid #ddd;
+        }
+
+        .tab.active {
+            background-color: #4285f4;
+            color: white;
+        }
+
+        .tab .close-btn {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #555;
+        }
+
+        /* Webview - Iframe */
+        iframe {
+            width: 100%;
+            height: calc(100vh - 180px);
+            border: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Dark Mode Styling */
+        .dark-mode body {
+            background-color: #121212;
+            color: white;
+        }
+
+        .dark-mode .nav-bar {
+            background-color: #333;
+        }
+
+        .dark-mode .tab-bar {
+            background-color: #222;
+        }
+
+        .dark-mode .tab {
+            background-color: #333;
+            border: 1px solid #444;
+            color: white;
+        }
+
+        .dark-mode .tab.active {
+            background-color: #1a73e8;
+        }
+
+        /* Incognito Mode */
+        .incognito iframe {
+            filter: brightness(0.7) contrast(1.5);
+        }
+
+        /* Settings Menu */
+        .settings-menu {
+            display: none;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .settings-menu a {
+            display: block;
+            color: #333;
+            padding: 8px;
+            text-decoration: none;
+        }
+
+        .settings-menu a:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="browser-container">
+    <!-- Navigation Bar -->
+    <div class="nav-bar">
+        <button id="backBtn">←</button>
+        <button id="forwardBtn">→</button>
+        <input id="urlInput" type="text" placeholder="Enter a URL (e.g., https://www.apple.com)">
+        <button id="goBtn">Go</button>
+        <button id="settingsBtn">⚙️</button>
+    </div>
+
+    <!-- Tab Bar -->
+    <div class="tab-bar" id="tabBar">
+        <!-- Tabs will be dynamically added here -->
+    </div>
+
+    <!-- Webview (Iframe) -->
+    <iframe id="webview" src="about:blank"></iframe>
+</div>
+
+<!-- Settings Menu -->
+<div class="settings-menu" id="settingsMenu">
+    <a href="#" id="toggleDarkMode">Toggle Dark Mode</a>
+    <a href="#" id="toggleIncognito">Toggle Incognito Mode</a>
+</div>
+
+<script>
+    let currentTabIndex = 0;
+    const tabs = [];
+    const tabBar = document.getElementById('tabBar');
+    const urlInput = document.getElementById('urlInput');
+    const webview = document.getElementById('webview');
+    const backBtn = document.getElementById('backBtn');
+    const forwardBtn = document.getElementById('forwardBtn');
+    const goBtn = document.getElementById('goBtn');
+    const settingsMenu = document.getElementById('settingsMenu');
+    const settingsBtn = document.getElementById('settingsBtn');
+
+    // Create a new tab
+    function createTab(name = 'New Tab') {
+        const tabIndex = tabs.length;
+        tabs.push({ name, url: '', incognito: false });
+
+        const tab = document.createElement('div');
+        tab.classList.add('tab');
+        tab.innerHTML = `${name} <span class="close-btn" onclick="closeTab(${tabIndex})">X</span>`;
+        tab.addEventListener('click', () => setActiveTab(tabIndex));
+
+        tabBar.appendChild(tab);
+        setActiveTab(tabIndex);
+    }
+
+    // Set the active tab
+    function setActiveTab(index) {
+        currentTabIndex = index;
+        urlInput.value = tabs[currentTabIndex].url;
+        webview.src = tabs[currentTabIndex].url;
+
+        // Update tabs UI
+        const tabElements = tabBar.getElementsByClassName('tab');
+        Array.from(tabElements).forEach((tab, idx) => {
+            tab.classList.toggle('active', idx === currentTabIndex);
+        });
+    }
+
+    // Close a tab
+    function closeTab(index) {
+        tabs.splice(index, 1);
+        tabBar.removeChild(tabBar.children[index]);
+
+        if (tabs.length > 0) {
+            setActiveTab(Math.max(0, currentTabIndex - 1));
+        }
+    }
+
+    // Load URL into webview
+    goBtn.addEventListener('click', () => {
+        const url = urlInput.value.trim();
+        tabs[currentTabIndex].url = url;
+        webview.src = url;
+    });
+
+    // Back Button
+    backBtn.addEventListener('click', () => {
+        webview.contentWindow.history.back();
+    });
+
+    // Forward Button
+    forwardBtn.addEventListener('click', () => {
+        webview.contentWindow.history.forward();
+    });
+
+    // Settings Menu Toggle
+    settingsBtn.addEventListener('click', () => {
+        settingsMenu.style.display = settingsMenu.style.display === 'block' ? 'none' : 'block';
+    });
+
+    // Dark Mode Toggle
+    document.getElementById('toggleDarkMode').addEventListener('click', () => {
+        document.body.classList.toggle('dark-mode');
+    });
+
+    // Incognito Mode Toggle
+    document.getElementById('toggleIncognito').addEventListener('click', () => {
+        tabs[currentTabIndex].incognito = !tabs[currentTabIndex].incognito;
+        webview.classList.toggle('incognito', tabs[currentTabIndex].incognito);
+    });
+
+    // Initialize with a default tab
+    createTab();
+
+</script>
+
+</body>
+</html>
